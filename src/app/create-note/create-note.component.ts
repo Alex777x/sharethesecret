@@ -1,12 +1,6 @@
 import { Component, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-create-note',
@@ -27,13 +21,26 @@ export class CreateNoteComponent {
   selectedFile = signal<File | null>(null);
   showOptions = signal<boolean>(false);
   isDragging = signal<boolean>(false);
+  fileError = signal<string | null>(null);
+
+  // Constants
+  readonly MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
   // Computed signal for form validity
   isFormValid = computed(() => {
-    return this.content() || this.selectedFile();
+    return (this.content() || this.selectedFile()) && !this.fileError();
   });
 
   constructor() {}
+
+  private validateFile(file: File): boolean {
+    if (file.size > this.MAX_FILE_SIZE) {
+      this.fileError.set('File size exceeds 2MB limit');
+      return false;
+    }
+    this.fileError.set(null);
+    return true;
+  }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -53,21 +60,29 @@ export class CreateNoteComponent {
     this.isDragging.set(false);
 
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      this.selectedFile.set(event.dataTransfer.files[0]);
+      const file = event.dataTransfer.files[0];
+      if (this.validateFile(file)) {
+        this.selectedFile.set(file);
+      }
     }
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile.set(input.files[0]);
+      const file = input.files[0];
+      if (this.validateFile(file)) {
+        this.selectedFile.set(file);
+      }
     } else {
       this.selectedFile.set(null);
+      this.fileError.set(null);
     }
   }
 
   removeFile(): void {
     this.selectedFile.set(null);
+    this.fileError.set(null);
     // Reset the file input
     const fileInput = document.querySelector(
       'input[type="file"]'
