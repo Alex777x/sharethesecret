@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    background-color: rgb(17, 24, 39);
+  }
+}

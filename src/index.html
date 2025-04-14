@@ -1,13 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="utf-8">
-  <title>ShareTheSecret</title>
+  <title>SecretNote - Anonymous Encrypted Messaging</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="SecretNote is a secure, anonymous web application that allows users to create encrypted messages or files that self-destruct after being viewed.">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="color-scheme" content="light dark">
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SecretNote - Anonymous Encrypted Messaging">
+  <meta property="og:description" content="Create self-destructing encrypted messages and files.">
+  <meta property="og:url" content="https://secretnote.example.com">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNGY0NmU1IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgY2xhc3M9ImZlYXRoZXIgZmVhdGhlci1sb2NrIj48cmVjdCB4PSIzIiB5PSIxMSIgd2lkdGg9IjE4IiBoZWlnaHQ9IjExIiByeD0iMiIgcnk9IjIiPjwvcmVjdD48cGF0aCBkPSJNNyAxMVY3YTUgNSAwIDAgMSAxMCAwdjQiPjwvcGF0aD48L3N2Zz4=">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  
+  <!-- DNS Prefetch & Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+
+<body class="h-full antialiased">
   <app-root></app-root>
+  <noscript>
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-md w-full space-y-8 text-center">
+        <div>
+          <h2 class="mt-6 text-3xl font-extrabold text-gray-900">JavaScript Required</h2>
+          <p class="mt-2 text-sm text-gray-600">
+            Please enable JavaScript to use SecretNote. All encryption is performed locally in your browser for your security.
+          </p>
+        </div>
+      </div>
+    </div>
+  </noscript>
 </body>
 </html>

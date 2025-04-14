@@ -1,59 +1,63 @@
-# ShareTheSecret
+# 🔐 SecretNote – Anonymous Encrypted Messaging & File Sharing
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.7.
+**SecretNote** is a secure, anonymous web application that allows users to create encrypted messages or files that self-destruct after being viewed once or after a specified duration. Built with Angular 19 and Tailwind CSS, it ensures client-side encryption and a seamless user experience without requiring any user authentication.
 
-## Development server
+## 🚀 Features
 
-To start a local development server, run:
+- **Anonymity**: No registration or login required.
+- **Client-Side Encryption**: Messages and files are encrypted in the browser before transmission.
+- **File Support**: Upload and encrypt files up to 2MB.
+- **Algorithm Selection**: Choose from multiple encryption algorithms (e.g., AES-256, RSA).
+- **Expiration Options**: Set notes to expire after one view, 1 hour, or 24 hours.
+- **Modern UI**: Responsive design using Angular 19 and Tailwind CSS.
+
+## 🧰 Technologies Used
+
+- [Angular 19](https://angular.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+
+## 📦 Installation & Setup
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (version 20 or higher)
+- [Angular CLI](https://angular.io/cli) (version 19 or higher)
+
+### Steps
+
+1. **Clone the repository**:
+
+```bash
+git clone https://github.com/yourusername/secretnote-frontend.git
+```
+
+2. **Navigate to the project directory**:
+
+```bash
+cd secretnote-frontend
+```
+
+3. **Install dependencies**:
+
+```bash
+npm install
+```
+
+4. **Run the development server**:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Navigate to http://localhost:4200/ in your browser to view the application.
 
-## Code scaffolding
+🛠️ Development Commands  
+• ng serve – Start the development server  
+• ng build – Build the application for production  
+• ng test – Run unit tests  
+• ng lint – Analyze code for linting errors
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+📄 License
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+This project is licensed under the MIT License. See the LICENSE file for details.
