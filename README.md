@@ -60,4 +60,4 @@ Navigate to http://localhost:4200/ in your browser to view the application.
 
 📄 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/Alex777x/sharethesecret/blob/master/LICENSE) file for details.
