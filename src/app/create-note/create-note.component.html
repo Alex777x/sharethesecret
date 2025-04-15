@@ -149,8 +149,9 @@
             class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
           >
             <option value="No-Encryption">No Encryption</option>
-            <option value="AES-256">AES-256</option>
-            <option value="RSA">RSA</option>
+            <option value="AES-GCM">AES-GCM (256-bit)</option>
+            <option value="RSA-OAEP">RSA-OAEP (4096-bit)</option>
+            <option value="ECDH">ECDH (P-384)</option>
           </select>
         </div>
 
@@ -188,6 +189,13 @@
           </button>
         </div>
       </form>
+
+      <div *ngIf="generatedLink()" class="mt-8">
+        <app-note-result
+          [link]="generatedLink() ?? ''"
+          (delete)="onDeleteNote()"
+        ></app-note-result>
+      </div>
     </div>
   </div>
 </main>

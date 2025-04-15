@@ -1,18 +1,26 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NoteService } from '../services/note.service';
+import { CryptoService, Algorithm } from '../services/crypto.service';
+import { NoteResultComponent } from '../note-result/note-result.component';
 
 @Component({
   selector: 'app-create-note',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NoteResultComponent,
+  ],
   templateUrl: './create-note.component.html',
   styleUrl: './create-note.component.css',
 })
 export class CreateNoteComponent {
   // Form signals
   content = signal<string>('');
-  algorithm = signal<string>('No-Encryption');
+  algorithm = signal<Algorithm | 'No-Encryption'>('No-Encryption');
   ttl = signal<string>('1-view');
   password = signal<string>('');
 
@@ -30,6 +38,9 @@ export class CreateNoteComponent {
   isFormValid = computed(() => {
     return (this.content() || this.selectedFile()) && !this.fileError();
   });
+
+  private noteService = inject(NoteService);
+  private cryptoService = inject(CryptoService);
 
   constructor() {}
 
@@ -96,21 +107,131 @@ export class CreateNoteComponent {
     this.showOptions.update((prev) => !prev);
   }
 
-  onSubmit(): void {
-    if (this.isFormValid()) {
-      const formData = {
-        content: this.content(),
-        algorithm: this.algorithm(),
-        ttl: this.ttl(),
-        password: this.password(),
-      };
+  async onSubmit(): Promise<void> {
+    if (!this.isFormValid()) return;
 
-      // TODO: Implement actual encryption and API call
-      console.log('Form submitted:', formData);
-      console.log('Selected file:', this.selectedFile());
+    const formData = new FormData();
+    let key: CryptoKey | null = null;
+    let encryptedContent: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
+      null;
+    let encryptedFile: { encrypted: ArrayBuffer; iv: Uint8Array } | null = null;
 
-      // For now, just generate a mock link
-      this.generatedLink.set('https://secretnote.example.com/note/123456');
+    try {
+      // Generate encryption key if encryption is enabled
+      if (this.algorithm() !== 'No-Encryption') {
+        const currentAlgorithm = this.algorithm() as Algorithm;
+        switch (currentAlgorithm) {
+          case 'AES-GCM':
+            key = await this.cryptoService.generateAesKey();
+            break;
+          case 'RSA-OAEP':
+            const rsaKeyPair = await this.cryptoService.generateRsaKeyPair();
+            key = rsaKeyPair.privateKey;
+            const publicKeyBuffer = await this.cryptoService.exportKey(
+              rsaKeyPair.publicKey,
+              'spki'
+            );
+            formData.append('public_key', new Blob([publicKeyBuffer]));
+            break;
+          case 'ECDH':
+            const ecdhKeyPair = await this.cryptoService.generateEcdhKeyPair();
+            key = ecdhKeyPair.privateKey;
+            const ecdhPublicKeyBuffer = await this.cryptoService.exportKey(
+              ecdhKeyPair.publicKey,
+              'spki'
+            );
+            formData.append('public_key', new Blob([ecdhPublicKeyBuffer]));
+            break;
+        }
+
+        // Encrypt content if provided
+        if (this.content().trim()) {
+          if (key) {
+            encryptedContent = await this.cryptoService.encryptData(
+              this.content(),
+              key,
+              currentAlgorithm
+            );
+            formData.append('content', new Blob([encryptedContent.encrypted]));
+            formData.append('content_iv', new Blob([encryptedContent.iv]));
+          } else {
+            formData.append('content', this.content());
+          }
+        }
+
+        // Encrypt file if provided
+        if (this.selectedFile()) {
+          const file = this.selectedFile() as File;
+          const fileBuffer = await file.arrayBuffer();
+
+          if (key) {
+            encryptedFile = await this.cryptoService.encryptData(
+              fileBuffer,
+              key,
+              currentAlgorithm
+            );
+            formData.append('file', new Blob([encryptedFile.encrypted]));
+            formData.append('file_iv', new Blob([encryptedFile.iv]));
+          } else {
+            formData.append('file', file);
+          }
+        }
+      } else {
+        // No encryption case
+        if (this.content().trim()) {
+          formData.append('content', this.content());
+        }
+        if (this.selectedFile()) {
+          formData.append('file', this.selectedFile() as File);
+        }
+      }
+
+      formData.append('algorithm', this.algorithm());
+      formData.append('ttl', this.ttl());
+      formData.append('password', this.password());
+
+      this.noteService.createNote(formData).subscribe({
+        next: async (response) => {
+          const baseUrl = window.location.origin;
+          let url = `${baseUrl}/note/${response.id}`;
+
+          // If encryption was used, append the key to the URL
+          if (key) {
+            const keyFormat = this.algorithm() === 'RSA-OAEP' ? 'pkcs8' : 'raw';
+            const rawKey = await this.cryptoService.exportKey(key, keyFormat);
+            const keyBase64 = btoa(
+              String.fromCharCode(...new Uint8Array(rawKey))
+            );
+            url += `#${keyBase64}:${this.algorithm().toLowerCase()}`;
+          }
+
+          this.generatedLink.set(url);
+        },
+        error: (err) => {
+          console.error('Failed to create note:', err);
+        },
+      });
+    } catch (error) {
+      console.error('Encryption error:', error);
     }
+  }
+
+  onDeleteNote(): void {
+    const link = this.generatedLink();
+    if (!link) return;
+
+    // Extract note ID from the URL
+    const match = link.match(/\/note\/([^#]+)/);
+    if (!match) return;
+
+    const noteId = match[1];
+    this.noteService.deleteNote(noteId).subscribe({
+      next: () => {
+        this.generatedLink.set(null);
+      },
+      error: (err) => {
+        console.error('Failed to delete note:', err);
+      },
+    });
   }
 }
