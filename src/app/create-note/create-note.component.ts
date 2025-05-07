@@ -1,9 +1,12 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NoteService } from '../services/note.service';
 import { CryptoService, Algorithm } from '../services/crypto.service';
 import { NoteResultComponent } from '../note-result/note-result.component';
+import { Router, ActivatedRoute } from '@angular/router';
+import { LinkStoreService } from '../services/link-store.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-create-note',
@@ -11,13 +14,12 @@ import { NoteResultComponent } from '../note-result/note-result.component';
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule,
-    NoteResultComponent,
-  ],
+    ReactiveFormsModule
+],
   templateUrl: './create-note.component.html',
   styleUrl: './create-note.component.css',
 })
-export class CreateNoteComponent {
+export class CreateNoteComponent implements OnInit {
   // Form signals
   content = signal<string>('');
   algorithm = signal<Algorithm | 'No-Encryption'>('No-Encryption');
@@ -30,9 +32,8 @@ export class CreateNoteComponent {
   showOptions = signal<boolean>(false);
   isDragging = signal<boolean>(false);
   fileError = signal<string | null>(null);
-
-  // Constants
-  readonly MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
+  errorMessage = signal<string>('');
+  isSubmitting = signal<boolean>(false);
 
   // Computed signal for form validity
   isFormValid = computed(() => {
@@ -41,11 +42,12 @@ export class CreateNoteComponent {
 
   private noteService = inject(NoteService);
   private cryptoService = inject(CryptoService);
-
-  constructor() {}
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private linkStore = inject(LinkStoreService);
 
   private validateFile(file: File): boolean {
-    if (file.size > this.MAX_FILE_SIZE) {
+    if (file.size > NoteService.MAX_FILE_SIZE) {
       this.fileError.set('File size exceeds 2MB limit');
       return false;
     }
@@ -82,12 +84,24 @@ export class CreateNoteComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      if (this.validateFile(file)) {
-        this.selectedFile.set(file);
+
+      // Check file size before proceeding
+      if (file.size > NoteService.MAX_FILE_SIZE) {
+        // Use fileError for consistency with drag-and-drop validation
+        this.fileError.set(
+          `File size exceeds the maximum limit of ${
+            NoteService.MAX_FILE_SIZE / (1024 * 1024)
+          }MB`
+        );
+        this.selectedFile.set(null);
+        this.errorMessage.set(''); // Clear general error message if file specific error occurs
+        input.value = ''; // Clear the file input
+        return;
       }
-    } else {
-      this.selectedFile.set(null);
-      this.fileError.set(null);
+
+      this.selectedFile.set(file);
+      this.fileError.set(null); // Clear file specific error
+      this.errorMessage.set(''); // Clear general error message
     }
   }
 
@@ -108,15 +122,23 @@ export class CreateNoteComponent {
   }
 
   async onSubmit(): Promise<void> {
-    if (!this.isFormValid()) return;
+    // Ensure fileError is also checked if a file is selected
+    if (this.isSubmitting() || (this.selectedFile() && this.fileError()))
+      return;
 
-    const formData = new FormData();
-    let key: CryptoKey | null = null;
-    let encryptedContent: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
-      null;
-    let encryptedFile: { encrypted: ArrayBuffer; iv: Uint8Array } | null = null;
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
+    // Clear fileError as well before submission attempt, as it's for UI feedback during selection
+    this.fileError.set(null);
 
     try {
+      const formData = new FormData();
+      let key: CryptoKey | null = null;
+      let encryptedContent: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
+        null;
+      let encryptedFile: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
+        null;
+
       // Generate encryption key if encryption is enabled
       if (this.algorithm() !== 'No-Encryption') {
         const currentAlgorithm = this.algorithm() as Algorithm;
@@ -190,29 +212,32 @@ export class CreateNoteComponent {
       formData.append('ttl', this.ttl());
       formData.append('password', this.password());
 
-      this.noteService.createNote(formData).subscribe({
-        next: async (response) => {
-          const baseUrl = window.location.origin;
-          let url = `${baseUrl}/note/${response.id}`;
+      const response = await firstValueFrom(
+        this.noteService.createNote(formData)
+      );
 
-          // If encryption was used, append the key to the URL
-          if (key) {
-            const keyFormat = this.algorithm() === 'RSA-OAEP' ? 'pkcs8' : 'raw';
-            const rawKey = await this.cryptoService.exportKey(key, keyFormat);
-            const keyBase64 = btoa(
-              String.fromCharCode(...new Uint8Array(rawKey))
-            );
-            url += `#${keyBase64}:${this.algorithm().toLowerCase()}`;
-          }
+      // Create and store the complete URL with encryption key if present
+      const baseUrl = window.location.origin;
+      let url = `${baseUrl}/note/${response.id}`;
 
-          this.generatedLink.set(url);
-        },
-        error: (err) => {
-          console.error('Failed to create note:', err);
-        },
-      });
-    } catch (error) {
-      console.error('Encryption error:', error);
+      // If encryption was used, append the key to the URL hash
+      if (key && this.algorithm() !== 'No-Encryption') {
+        const keyFormat = this.algorithm() === 'RSA-OAEP' ? 'pkcs8' : 'raw';
+        const rawKey = await this.cryptoService.exportKey(key, keyFormat);
+        const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
+        url += `#${keyBase64}:${this.algorithm()}`;
+      }
+
+      // Store the complete URL
+      this.linkStore.setLink(url);
+      this.router.navigate(['/result']);
+    } catch (error: any) {
+      console.error('Error creating note:', error);
+      this.errorMessage.set(
+        error.message || 'Failed to create note. Please try again.'
+      );
+    } finally {
+      this.isSubmitting.set(false);
     }
   }
 
@@ -228,6 +253,7 @@ export class CreateNoteComponent {
     this.noteService.deleteNote(noteId).subscribe({
       next: () => {
         this.generatedLink.set(null);
+        this.router.navigate(['/deleted']);
       },
       error: (err) => {
         console.error('Failed to delete note:', err);

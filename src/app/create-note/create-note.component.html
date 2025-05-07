@@ -190,11 +190,8 @@
         </div>
       </form>
 
-      <div *ngIf="generatedLink()" class="mt-8">
-        <app-note-result
-          [link]="generatedLink() ?? ''"
-          (delete)="onDeleteNote()"
-        ></app-note-result>
+      <div class="error-message" *ngIf="errorMessage()">
+        {{ errorMessage() }}
       </div>
     </div>
   </div>

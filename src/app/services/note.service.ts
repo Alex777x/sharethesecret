@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpParams,
+  HttpErrorResponse,
+} from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface Note {
   id: string;
@@ -18,15 +24,34 @@ interface Note {
 @Injectable({ providedIn: 'root' })
 export class NoteService {
   private api = `${environment.apiUrl}/notes`;
+  // 2MB in bytes
+  public static readonly MAX_FILE_SIZE = 2 * 1024 * 1024;
 
   constructor(private http: HttpClient) {}
 
-  createNote(formData: FormData) {
-    return this.http.post<{ id: string }>(this.api, formData);
+  createNote(formData: FormData): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(this.api, formData).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (
+          error.status === 413 ||
+          (error.error?.message &&
+            error.error.message.includes('Maximum upload size exceeded'))
+        ) {
+          return throwError(
+            () => new Error('File size exceeds the maximum limit of 2MB')
+          );
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
-  getNote(id: string) {
-    return this.http.get<Note>(`${this.api}/${id}`);
+  getNote(id: string, password?: string) {
+    let params = new HttpParams();
+    if (password) {
+      params = params.set('password', password);
+    }
+    return this.http.get<Note>(`${this.api}/${id}`, { params });
   }
 
   deleteNote(id: string) {
