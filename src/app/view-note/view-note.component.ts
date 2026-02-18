@@ -68,10 +68,16 @@ export class ViewNoteComponent implements OnInit {
             const keyBuffer = Uint8Array.from(atob(keyBase64), (c) =>
               c.charCodeAt(0)
             );
-            const importedKey = await window.crypto.subtle.importKey(
-              'raw',
-              keyBuffer,
-              { name: this.algorithm(), length: 256 }, // Assuming AES-256, adjust if other key types need different import params
+
+            let format: 'raw' | 'pkcs8' = 'raw';
+            if (this.algorithm() === 'RSA-OAEP') {
+              format = 'pkcs8';
+            }
+
+            const importedKey = await this.cryptoService.importKey(
+              format,
+              keyBuffer.buffer as ArrayBuffer,
+              this.algorithm(),
               false,
               ['decrypt']
             );

@@ -1,198 +1,145 @@
-<main class="bg-white dark:bg-gray-900">
-  <div class="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-lg">
-      <div
-        class="mb-8 rounded-lg bg-teal-50 px-6 py-8 shadow-sm dark:bg-teal-900/30"
-      >
-        <h1
-          class="text-center text-2xl font-bold text-gray-900 dark:text-teal-600 sm:text-3xl"
-        >
-          Create Secret
-        </h1>
-        <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Share your secret message or file securely
-        </p>
+<main class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="glass-panel w-full max-w-lg rounded-2xl p-8 transition-all duration-300">
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold mb-3 tracking-tight text-gradient">
+        ShareTheSecret
+      </h1>
+      <p class="text-gray-600 dark:text-gray-300">
+        Share sensitive information securely with a self-destructing link.
+      </p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="space-y-6">
+      <div class="space-y-2">
+        <label for="content" class="block text-sm font-medium text-gray-700 dark:text-gray-200 ml-1">
+          Message
+        </label>
+        <textarea id="content" [value]="content()" (input)="content.set($any($event.target).value)" rows="5"
+          class="glass-input w-full rounded-xl p-4 text-sm transition-all duration-200 resize-none placeholder-gray-400 dark:placeholder-gray-500"
+          placeholder="Type your secret message here..."></textarea>
       </div>
 
-      <form (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
-        <div>
-          <label
-            for="content"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Text Message
-          </label>
-          <textarea
-            id="content"
-            [value]="content()"
-            (input)="content.set($any($event.target).value)"
-            rows="4"
-            class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            placeholder="Enter your secret message here..."
-          ></textarea>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 ml-1">
+          File Attachment (Max 2MB)
+        </label>
+        <div (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+          class="relative group cursor-pointer transition-all duration-200">
+          <div [ngClass]="{
+              'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-900/20': isDragging(),
+              'border-red-500 bg-red-50/50 dark:bg-red-900/20': fileError()
+            }"
+            class="glass-input flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-indigo-400 dark:group-hover:border-indigo-400">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <svg class="w-8 h-8 mb-3 text-gray-400 group-hover:text-indigo-500 transition-colors duration-200"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
+                <span class="font-semibold text-indigo-600 dark:text-indigo-400">Click to upload</span>
+                or drag and drop
+              </p>
+            </div>
+            <input type="file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              (change)="onFileSelected($event)" />
+          </div>
         </div>
 
-        <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Or/and upload a file (2 MB max)
-          </label>
-          <div class="mt-1 flex w-full items-center justify-center">
-            <div
-              (dragover)="onDragOver($event)"
-              (dragleave)="onDragLeave($event)"
-              (drop)="onDrop($event)"
-              [class.border-teal-500]="isDragging()"
-              [class.bg-teal-50]="isDragging()"
-              [class.dark:border-teal-400]="isDragging()"
-              [class.dark:bg-teal-900]="isDragging()"
-              [class.border-red-500]="fileError()"
-              [class.bg-red-50]="fileError()"
-              [class.dark:border-red-400]="fileError()"
-              [class.dark:bg-red-900]="fileError()"
-              class="flex w-full cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 text-center hover:border-gray-400 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:border-gray-500 dark:hover:bg-gray-700"
-            >
-              <label class="flex w-full cursor-pointer flex-col items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="mx-auto size-8 text-gray-500 dark:text-gray-400"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-                  />
-                </svg>
-                <span class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  Click to upload or drag and drop
-                </span>
-                <span class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Max file size: 2MB
-                </span>
-                <input
-                  type="file"
-                  (change)="onFileSelected($event)"
-                  class="hidden"
-                />
-              </label>
-            </div>
-          </div>
-          <div
-            *ngIf="fileError()"
-            class="mt-2 text-sm text-red-600 dark:text-red-400"
-          >
-            {{ fileError() }}
-          </div>
-          <div *ngIf="selectedFile()" class="mt-2 flex items-center gap-2">
-            <span class="text-sm text-gray-600 dark:text-gray-400">
+        <div *ngIf="fileError()" class="ml-1 text-sm text-red-500 dark:text-red-400 animate-pulse">
+          {{ fileError() }}
+        </div>
+
+        <div *ngIf="selectedFile()"
+          class="flex items-center justify-between p-3 mt-2 glass-input rounded-lg border border-indigo-100 dark:border-indigo-900/30">
+          <div class="flex items-center space-x-3 overflow-hidden">
+            <svg class="w-5 h-5 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+              </path>
+            </svg>
+            <span class="text-sm text-gray-700 dark:text-gray-200 truncate">
               {{ selectedFile()?.name }}
             </span>
-            <button
-              type="button"
-              (click)="removeFile()"
-              class="rounded-full bg-gray-100 p-1 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
-            >
-              <span class="sr-only">Remove file</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-4"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+          </div>
+          <button type="button" (click)="removeFile()" class="text-gray-400 hover:text-red-500 transition-colors p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" (click)="onClickShowOptions()"
+          class="flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors ml-1 focus:outline-none">
+          <svg class="w-4 h-4 mr-1 transition-transform duration-200" [class.rotate-180]="showOptions()" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+          {{ showOptions() ? "Hide Options" : "More Options" }}
+        </button>
+
+        <div *ngIf="showOptions()"
+          class="mt-4 space-y-4 p-4 rounded-xl glass-input border border-gray-100 dark:border-gray-700/50">
+          <div>
+            <label for="ttl"
+              class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Lifetime
+            </label>
+            <select id="ttl" [value]="ttl()" (change)="ttl.set($any($event.target).value)"
+              class="w-full bg-transparent border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white">
+              <option value="1-view" class="dark:bg-gray-800">
+                1 View (burn after reading)
+              </option>
+              <option value="1h" class="dark:bg-gray-800">1 Hour</option>
+              <option value="24h" class="dark:bg-gray-800">24 Hours</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="algorithm"
+              class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Encryption
+            </label>
+            <select id="algorithm" [value]="algorithm()" (change)="algorithm.set($any($event.target).value)"
+              class="w-full bg-transparent border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white">
+              <option value="No-Encryption" class="dark:bg-gray-800">
+                No Encryption
+              </option>
+              <option value="AES-GCM" class="dark:bg-gray-800">AES-GCM</option>
+              <option value="RSA-OAEP" class="dark:bg-gray-800">
+                RSA-OAEP
+              </option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              AES-GCM is recommended for general use.
+            </p>
+          </div>
+
+          <div>
+            <label for="password"
+              class="block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Password Protection (Optional)
+            </label>
+            <input id="password" type="password" [value]="password()" (input)="password.set($any($event.target).value)"
+              class="w-full bg-transparent border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 dark:text-white"
+              placeholder="Set a password..." />
           </div>
         </div>
-
-        <div *ngIf="showOptions()">
-          <label
-            for="ttl"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Time to Live (TTL)
-          </label>
-          <select
-            id="ttl"
-            [value]="ttl()"
-            (change)="ttl.set($any($event.target).value)"
-            class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="1-view">1 view</option>
-            <option value="1h">1 hour</option>
-            <option value="24h">24 hours</option>
-          </select>
-        </div>
-
-        <div *ngIf="showOptions()">
-          <label
-            for="algorithm"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Encryption Algorithm
-          </label>
-          <select
-            id="algorithm"
-            [value]="algorithm()"
-            (change)="algorithm.set($any($event.target).value)"
-            class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-          >
-            <option value="No-Encryption">No Encryption</option>
-            <option value="AES-GCM">AES-GCM (256-bit)</option>
-            <option value="RSA-OAEP">RSA-OAEP (4096-bit)</option>
-            <option value="ECDH">ECDH (P-384)</option>
-          </select>
-        </div>
-
-        <div *ngIf="showOptions()">
-          <label
-            for="password"
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Password (optional)
-          </label>
-          <input
-            id="password"
-            type="password"
-            [value]="password()"
-            (input)="password.set($any($event.target).value)"
-            class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            placeholder="Enter a password for additional security"
-          />
-        </div>
-
-        <div class="flex gap-4">
-          <button
-            type="button"
-            (click)="onClickShowOptions()"
-            class="inline-block w-full rounded-lg bg-gray-100 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            {{ showOptions() ? "Hide Options" : "Show Options" }}
-          </button>
-          <button
-            type="submit"
-            [disabled]="!isFormValid()"
-            class="inline-block w-full rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-700 focus:outline-none focus:ring disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Create Secret
-          </button>
-        </div>
-      </form>
-
-      <div class="error-message" *ngIf="errorMessage()">
-        {{ errorMessage() }}
       </div>
+
+      <button type="submit" [disabled]="!isFormValid() || isSubmitting()"
+        class="w-full btn-primary py-4 rounded-xl font-semibold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center">
+        <span *ngIf="!isSubmitting()">Create Secret Link</span>
+        <div *ngIf="isSubmitting()" class="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin">
+        </div>
+      </button>
+    </form>
+
+    <div *ngIf="errorMessage()"
+      class="mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-sm text-red-600 dark:text-red-400 text-center">
+      {{ errorMessage() }}
     </div>
   </div>
 </main>

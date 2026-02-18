@@ -13,7 +13,7 @@ interface KeyPair {
   providedIn: 'root',
 })
 export class CryptoService {
-  constructor() {}
+  constructor() { }
 
   /**
    * Generates a key or key pair based on the algorithm
@@ -111,7 +111,7 @@ export class CryptoService {
     return window.crypto.subtle.decrypt(
       {
         name: algorithm,
-        iv,
+        iv: iv as any,
       },
       key,
       encryptedData
@@ -136,6 +136,9 @@ export class CryptoService {
   /**
    * Imports a key in the specified format
    */
+  /**
+   * Imports a key in the specified format
+   */
   async importKey(
     format: KeyFormat,
     keyData: ArrayBuffer | JsonWebKey,
@@ -143,11 +146,16 @@ export class CryptoService {
     extractable: boolean,
     keyUsages: KeyUsage[]
   ): Promise<CryptoKey> {
+    const algoParams: any = { name: algorithm };
+    if (algorithm === 'RSA-OAEP') {
+      algoParams.hash = 'SHA-512';
+    }
+
     if (format === 'jwk' && !(keyData instanceof ArrayBuffer)) {
       return window.crypto.subtle.importKey(
         format,
         keyData as JsonWebKey,
-        { name: algorithm },
+        algoParams,
         extractable,
         keyUsages
       );
@@ -155,7 +163,7 @@ export class CryptoService {
       return window.crypto.subtle.importKey(
         format,
         keyData,
-        { name: algorithm },
+        algoParams,
         extractable,
         keyUsages
       );

@@ -15,11 +15,11 @@ import { firstValueFrom } from 'rxjs';
     CommonModule,
     FormsModule,
     ReactiveFormsModule
-],
+  ],
   templateUrl: './create-note.component.html',
   styleUrl: './create-note.component.css',
 })
-export class CreateNoteComponent implements OnInit {
+export class CreateNoteComponent {
   // Form signals
   content = signal<string>('');
   algorithm = signal<Algorithm | 'No-Encryption'>('No-Encryption');
@@ -89,8 +89,7 @@ export class CreateNoteComponent implements OnInit {
       if (file.size > NoteService.MAX_FILE_SIZE) {
         // Use fileError for consistency with drag-and-drop validation
         this.fileError.set(
-          `File size exceeds the maximum limit of ${
-            NoteService.MAX_FILE_SIZE / (1024 * 1024)
+          `File size exceeds the maximum limit of ${NoteService.MAX_FILE_SIZE / (1024 * 1024)
           }MB`
         );
         this.selectedFile.set(null);
@@ -134,6 +133,7 @@ export class CreateNoteComponent implements OnInit {
     try {
       const formData = new FormData();
       let key: CryptoKey | null = null;
+      let urlKey: CryptoKey | null = null;
       let encryptedContent: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
         null;
       let encryptedFile: { encrypted: ArrayBuffer; iv: Uint8Array } | null =
@@ -145,24 +145,12 @@ export class CreateNoteComponent implements OnInit {
         switch (currentAlgorithm) {
           case 'AES-GCM':
             key = await this.cryptoService.generateAesKey();
+            urlKey = key;
             break;
           case 'RSA-OAEP':
             const rsaKeyPair = await this.cryptoService.generateRsaKeyPair();
-            key = rsaKeyPair.privateKey;
-            const publicKeyBuffer = await this.cryptoService.exportKey(
-              rsaKeyPair.publicKey,
-              'spki'
-            );
-            formData.append('public_key', new Blob([publicKeyBuffer]));
-            break;
-          case 'ECDH':
-            const ecdhKeyPair = await this.cryptoService.generateEcdhKeyPair();
-            key = ecdhKeyPair.privateKey;
-            const ecdhPublicKeyBuffer = await this.cryptoService.exportKey(
-              ecdhKeyPair.publicKey,
-              'spki'
-            );
-            formData.append('public_key', new Blob([ecdhPublicKeyBuffer]));
+            key = rsaKeyPair.publicKey;
+            urlKey = rsaKeyPair.privateKey;
             break;
         }
 
@@ -175,7 +163,7 @@ export class CreateNoteComponent implements OnInit {
               currentAlgorithm
             );
             formData.append('content', new Blob([encryptedContent.encrypted]));
-            formData.append('content_iv', new Blob([encryptedContent.iv]));
+            formData.append('content_iv', new Blob([encryptedContent.iv as any]));
           } else {
             formData.append('content', this.content());
           }
@@ -193,7 +181,7 @@ export class CreateNoteComponent implements OnInit {
               currentAlgorithm
             );
             formData.append('file', new Blob([encryptedFile.encrypted]));
-            formData.append('file_iv', new Blob([encryptedFile.iv]));
+            formData.append('file_iv', new Blob([encryptedFile.iv as any]));
           } else {
             formData.append('file', file);
           }
@@ -221,9 +209,9 @@ export class CreateNoteComponent implements OnInit {
       let url = `${baseUrl}/note/${response.id}`;
 
       // If encryption was used, append the key to the URL hash
-      if (key && this.algorithm() !== 'No-Encryption') {
+      if (urlKey && this.algorithm() !== 'No-Encryption') {
         const keyFormat = this.algorithm() === 'RSA-OAEP' ? 'pkcs8' : 'raw';
-        const rawKey = await this.cryptoService.exportKey(key, keyFormat);
+        const rawKey = await this.cryptoService.exportKey(urlKey, keyFormat);
         const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
         url += `#${keyBase64}:${this.algorithm()}`;
       }

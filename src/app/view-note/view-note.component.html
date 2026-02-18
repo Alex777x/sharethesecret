@@ -1,97 +1,133 @@
-<main class="bg-white dark:bg-gray-900 min-h-[80vh]">
-  <div class="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-lg">
-      <div *ngIf="isLoading()" class="text-center py-12">
-        <div
-          class="inline-block animate-spin h-8 w-8 border-4 border-gray-300 border-t-teal-600 rounded-full mb-2"
-        ></div>
-        <p class="text-gray-600 dark:text-gray-400">Loading note...</p>
-      </div>
-
+<main class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="glass-panel w-full max-w-lg rounded-2xl p-8 transition-all duration-300">
+    <div *ngIf="isLoading()" class="text-center py-12">
       <div
-        *ngIf="error()"
-        class="mb-8 rounded-lg bg-red-50 px-6 py-8 shadow-sm dark:bg-red-900/30"
-      >
-        <p class="text-center text-red-600 dark:text-red-400">{{ error() }}</p>
+        class="inline-block w-12 h-12 rounded-full border-4 border-gray-200/30 border-t-indigo-500 animate-spin mb-4">
       </div>
+      <p class="text-gray-600 dark:text-gray-300 animate-pulse font-medium">
+        Decrypting secure content...
+      </p>
+    </div>
 
-      <div *ngIf="note() && !isLoading() && !error()">
-        <!-- Password form if note has password -->
-        <div
-          *ngIf="note()?.hasPassword && !decryptedContent() && !decryptedFile()"
-          class="mb-8 rounded-lg bg-teal-50 px-6 py-8 shadow-sm dark:bg-teal-900/30"
-        >
-          <h2
-            class="text-center text-xl font-bold text-gray-900 dark:text-teal-600"
-          >
+    <div *ngIf="error()" class="text-center py-8">
+      <div
+        class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 mb-6">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+          </path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+        Access Denied
+      </h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-8">{{ error() }}</p>
+      <a routerLink="/"
+        class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 dark:hover:bg-indigo-900/30 transition-colors duration-200">
+        Create New Secret
+      </a>
+    </div>
+
+    <div *ngIf="note() && !isLoading() && !error()" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <!-- Password form if note has password -->
+      <div *ngIf="note()?.hasPassword && !decryptedContent() && !decryptedFile()">
+        <div class="text-center mb-8">
+          <div
+            class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 mb-4">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+              </path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
             Password Required
           </h2>
-          <form (ngSubmit)="submitPassword()" class="mt-4 space-y-4">
-            <div>
-              <label
-                for="password"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                [value]="password()"
-                (input)="password.set($any($event.target).value)"
-                class="mt-1 w-full rounded-lg border-gray-200 bg-white p-3 text-sm text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                required
-                autofocus
-              />
-            </div>
-            <button
-              type="submit"
-              class="w-full rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-700 focus:outline-none focus:ring"
-            >
-              Submit
-            </button>
-          </form>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">
+            This secret is protected with a password.
+          </p>
         </div>
 
-        <!-- Decrypted content -->
-        <div
-          *ngIf="decryptedContent()"
-          class="mb-8 rounded-lg bg-white px-6 py-8 shadow-sm dark:bg-gray-800"
-        >
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+        <form (ngSubmit)="submitPassword()" class="space-y-4">
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1 mb-1">
+              Password
+            </label>
+            <input type="password" id="password" [value]="password()" (input)="password.set($any($event.target).value)"
+              class="glass-input w-full rounded-xl p-4 text-center text-lg tracking-widest placeholder-gray-400 dark:placeholder-gray-600"
+              placeholder="••••••" required autofocus />
+          </div>
+          <button type="submit" class="w-full btn-primary py-3 rounded-xl font-semibold shadow-lg">
+            Unlock Secret
+          </button>
+        </form>
+      </div>
+
+      <!-- Decrypted content -->
+      <div *ngIf="decryptedContent()" class="space-y-6">
+        <div class="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+            <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+            </svg>
             Secret Message
           </h2>
-          <pre
-            class="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-            >{{ decryptedContent() }}</pre
-          >
         </div>
+        <div class="relative group">
+          <pre
+            class="whitespace-pre-wrap font-sans text-base leading-relaxed p-6 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50 text-gray-800 dark:text-gray-200 shadow-inner max-h-[60vh] overflow-y-auto">{{ decryptedContent() }}</pre>
+        </div>
+      </div>
 
-        <!-- Decrypted file -->
-        <div
-          *ngIf="decryptedFile()"
-          class="mb-8 rounded-lg bg-white px-6 py-8 shadow-sm dark:bg-gray-800"
-        >
-          <h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+      <!-- Decrypted file -->
+      <div *ngIf="decryptedFile()" class="space-y-4 mt-8">
+        <div class="border-b border-gray-200 dark:border-gray-700 pb-2">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+              </path>
+            </svg>
             Attached File
           </h2>
-          <button
-            (click)="downloadFile()"
-            class="w-full rounded-lg bg-teal-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-teal-700 focus:outline-none focus:ring"
-          >
-            Download {{ decryptedFile()?.name }}
-          </button>
         </div>
+        <div
+          class="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
+          <div class="flex items-center space-x-4 overflow-hidden">
+            <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+              </svg>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {{ decryptedFile()?.name }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Ready for download
+              </p>
+            </div>
+          </div>
+        </div>
+        <button (click)="downloadFile()"
+          class="w-full btn-primary py-3 rounded-xl font-semibold shadow-lg flex justify-center items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Download File
+        </button>
+      </div>
 
-        <!-- Delete button for non-1-view notes -->
-        <div *ngIf="note()?.ttl !== '1-view'" class="mt-8">
-          <button
-            (click)="deleteNote()"
-            class="w-full rounded-lg bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring"
-          >
-            Delete Immediately
-          </button>
-        </div>
+      <!-- Delete button for non-1-view notes -->
+      <div *ngIf="note()?.ttl !== '1-view'" class="mt-12 pt-6 border-t border-gray-100 dark:border-gray-800">
+        <button (click)="deleteNote()"
+          class="w-full py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900/30">
+          Delete Secret Immediately
+        </button>
       </div>
     </div>
   </div>
